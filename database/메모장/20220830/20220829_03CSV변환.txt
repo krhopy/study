@@ -1,0 +1,145 @@
+
+파일 → 새로만들기 → 데이터베이스계층 → 데이터베이스 파일
+    i:\java202207\database\20220829_03CSV변환.sql
+    
+////////////////////////////////////////////////////////////////////////////////
+
+● [CSV 파일]
+   - 모든 데이터가 ,(콤마) 로 구분되어 있는 파일
+   
+● [CSV 파일을 데이터베이스로 가져오기]
+   - 공공데이터포털 http://data.go.kr/활용
+   
+   
+문) 도로명 우편번호 테이블 구축하기
+
+-- 1) zipdoro.csv 준비 (258,267행)
+
+-- 2) zipdoro.csv 내용을 저장하는 zipdoro 테이블 생성
+
+create table zipdoro (
+     zipno        char(5)         --우편번호
+    ,zipaddress  varchar(1000)   -- 주소
+);
+
+
+commit;
+drop table zipdoro; --테이블 삭제
+
+
+-- 3) 가져오기와 내보내기
+- zipdoro 테이블 우클릭 → 데이터 임포트 (가져오기)
+- zipdoro 테이블 우클릭 → export       (내보내기)
+
+- (가져오기) 
+ 찾아보기 -> 헤더 체크해제 -> 다음 -> 파일 열1,2, 오른쪽이 사용할 열, 왼쪽이 사용하지않을 열 
+
+
+select count(*) from zipdoro;   --전체 행 개수 조회하기
+
+
+
+
+-- 서울특별시 강남구로 시작되는 우편번호가 몇개인지 조회하시오
+select count(zipno)
+from zipdoro
+where zipaddress like '서울특별시 강남구%';
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+-- 문2) 한국교원대학교_초중등학교위치.csv를 변환해서 테이블에 저장하시오 (11873행)
+
+create table school (
+     schid       varchar2(10)      --학교ID
+    ,schname     varchar2(255)     --학교명
+    ,grade       varchar2(20)      --학교급구분
+    ,adress      varchar2(255)     --소재지도로명주소
+    ,cdate       date              --생성일자 (형식 YYYY-MM-DD)
+    ,udate       date              --변경일자 (형식 YYYY=MM-DD)
+    ,latitude    number(20,10)     --위도
+    ,longitude   number(20,10)     --경도
+);
+
+select count(*) from school;
+drop table school;
+commit;
+
+-- 비어있는 값 (null)을 찾으시오
+
+select * from school where schid is null;
+select * from school where schname is null;
+select * from school where grade is null;
+select * from school where adress is null;      --B000027204행에서 비어있음
+select * from school where cdate is null;
+select * from school where udate is null;
+select * from school where latitude is null;
+select * from school where longitude is null;
+
+
+문) 각 시도별 초등학교, 중학교  갯수를 구하시오
+
+
+-- 
+
+
+select substr(adress, 1, 2), count(grade) 
+from school
+where grade in ('초등학교', '중학교')
+group by substr(adress, 1, 2);
+
+
+select AA.substr(adress, 1, 2), AA.초등학교, grade
+from(
+select substr(adress, 1, 2), count(grade) as 초등학교
+from school
+where grade='초등학교'
+group by substr(adress, 1, 2)
+)AA
+where grade='중학교';
+
+
+
+
+---------------------------------------------------------- 김경환님
+
+select
+     nvl(cho.addr1, '-')
+    ,nvl(cho.ckinds, '초등학교') as 학교구분
+    ,nvl(cho.c_cnt, 0) as 갯수
+    ,nvl(jung.addr2, '-')
+    ,nvl(jung.jkinds, '중학교') as 학교구분
+    ,nvl(jung.j_cnt, 0) as 갯수
+from(
+    select addr1, ckinds, count(*) as c_cnt
+    from (
+        select substr(address, 0, instr(address, ' ')) as addr1, kinds as ckinds
+        from whereschool
+        )
+    group by addr1, ckinds
+    having ckinds like '초%'
+    ) cho full join (
+                select addr2, jkinds, count(*) as j_cnt
+from (
+                    select substr(address, 0, instr(address, ' ')) as addr2, kinds as jkinds
+                    from whereschool
+                    )
+                group by addr2, jkinds
+                having jkinds like '중%'
+                ) jung
+on cho.addr1 = jung.addr2
+order by cho.addr1;
+
+
+
+---------------------------------------------------------------- 정은주님
+
+select substr(saddress,0, instr(saddress,' ',1,1)), scategory, count(*) 
+from school 
+group by substr(saddress,0, instr(saddress,' ',1,1)),scategory
+order by substr(saddress,0, instr(saddress,' ',1,1)), scategory desc;
+
+
+
+

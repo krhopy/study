@@ -1,0 +1,94 @@
+
+파일 → 새로만들기 → 데이터베이스계층 → 데이터베이스 파일
+    i:\java202207\database\20220829_03CSV변환.sql
+    
+////////////////////////////////////////////////////////////////////////////////
+
+● [CSV 파일]
+   - 모든 데이터가 ,(콤마) 로 구분되어 있는 파일
+   
+● [CSV 파일을 데이터베이스로 가져오기]
+   - 공공데이터포털 http://data.go.kr/활용
+   
+   
+문) 도로명 우편번호 테이블 구축하기
+
+-- 1) zipdoro.csv 준비 (258,267행)
+
+-- 2) zipdoro.csv 내용을 저장하는 zipdoro 테이블 생성
+
+create table zipdoro (
+     zipno        char(5)         --우편번호
+    ,zipaddress  varchar(1000)   -- 주소
+);
+
+
+commit;
+drop table zipdoro; --테이블 삭제
+
+
+-- 3) 가져오기와 내보내기
+- zipdoro 테이블 우클릭 → 데이터 임포트 (가져오기)
+- zipdoro 테이블 우클릭 → export       (내보내기)
+
+- (가져오기) 
+ 찾아보기 -> 헤더 체크해제 -> 다음 -> 파일 열1,2, 오른쪽이 사용할 열, 왼쪽이 사용하지않을 열 
+
+
+select count(*) from zipdoro;   --전체 행 개수 조회하기
+
+
+
+
+-- 서울특별시 강남구로 시작되는 우편번호가 몇개인지 조회하시오
+select count(zipno)
+from zipdoro
+where zipaddress like '서울특별시 강남구%';
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+
+-- 문2) 한국교원대학교_초중등학교위치.csv를 변환해서 테이블에 저장하시오 (11873행)
+
+create table school (
+     schid       varchar2(10)       --학교ID
+    ,schname     varchar2(255)      --학교명
+    ,grade       varchar2(20)       --학교급구분
+    ,adress      varchar2(255)      --
+    ,cdate       date
+    ,udate       date
+    ,latitude    number(20,10)
+    ,longitude   number(20,10)
+);
+
+select count(*) from school;
+drop table school;
+
+
+-- 비어있는 값 (null)을 찾으시오
+
+select *
+from school
+where adress is null;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
